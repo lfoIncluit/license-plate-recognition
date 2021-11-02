@@ -2,9 +2,7 @@
 The license-plate-recognition call the OpenVINO pre-trained models with python and the DNN in OpenCV. It comes from the [Security Barrier Camera Demo](https://docs.openvinotoolkit.org/2018_R5/_samples_security_barrier_camera_demo_README.html).This demo showcases Vehicle and License Plate Detection network followed by the Vehicle Attributes Recognition and License Plate Recognition networks applied on top of the detection results
 * vehicle-license-plate-detection-barrier-0106, which is a primary detection network to find the vehicles and license plates
 * vehicle-attributes-recognition-barrier-0039, which is executed on top of the results from the first network and reports general vehicle attributes, for example, vehicle type (car/van/bus/track) and color
-* license-plate-recognition-barrier-0001, which is executed on top of the results from the first network and reports a string per recognized license plate
-
-The license-plate-recognition test in win10 + python3.6 + openvino_2021.1.110 + opencv-contrib-python 4.4.0.44.
+* license-plate-recognition-barrier-0007, which is executed on top of the results from the first network and reports a string per recognized license plate
 
 # How to run the license-plate-recognition
 1. OpenVINO installation and environment configuration. More information Please refer to [OpenVINO+Win10安装及环境配置攻略](https://livezingy.com/setup-openvino-in-win10/).
@@ -28,8 +26,7 @@ D:\Python\OpenVINOMODEL>python testOpenVINO.py
 
 ![image](https://livezingy.com/uploads/2020/12/plate4.png)
 
-# About vehicle-attributes-recognition-barrier-0039
-The test result of vehicle-attributes-recognition-barrier-0039 is not very accurate, so the result is not displayed in the picture by default. If you want to observe the test results of the model, you could set the bShowColor = True in testOpenVINO.py.
+# vehicle-attributes-recognition-barrier-0039 was removed.
 
 # More Information
 [OpenVINO+Win10安装及环境配置攻略](https://livezingy.com/setup-openvino-in-win10/)
