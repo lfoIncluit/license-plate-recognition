@@ -101,17 +101,6 @@ if neural_net is not None:
     execution_net = ie.load_network(network=neural_net, device_name=device.upper())
 n, c, h, w = neural_net.input_info[input_blob].input_data.shape
 
-CAR_COLORS = ["white", "gray", "yellow", "red", "green", "blue", "black"]
-CAR_TYPES = ["car", "bus", "truck", "van"]
-# https://docs.openvinotoolkit.org/2019_R1/_vehicle_attributes_recognition_barrier_0039_description_vehicle_attributes_recognition_barrier_0039.html
-attr_net = cv2.dnn.Net_readFromModelOptimizer(
-    "./vehicle-attributes-recognition-barrier-0039/vehicle-attributes-recognition-barrier-0039.xml",
-    "./vehicle-attributes-recognition-barrier-0039/vehicle-attributes-recognition-barrier-0039.bin",
-)
-
-attr_net.setPreferableBackend(cv2.dnn.DNN_BACKEND_INFERENCE_ENGINE)
-attr_net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
-
 # https://docs.openvinotoolkit.org/2019_R1/_vehicle_license_plate_detection_barrier_0106_description_vehicle_license_plate_detection_barrier_0106.html
 pd_net = cv2.dnn.readNet(
     "./vehicle-license-plate-detection-barrier-0106/vehicle-license-plate-detection-barrier-0106.xml",
@@ -148,37 +137,8 @@ def plateRecognition(frame):
             continue
 
         classId = int(detection[1])
-        if classId == 1:  # car
-            xmin = int(detection[3] * FRAME_WIDTH)
-            ymin = int(detection[4] * FRAME_HEIGHT)
-            xmax = int(detection[5] * FRAME_WIDTH)
-            ymax = int(detection[6] * FRAME_HEIGHT)
-
-            rectW = xmax - xmin
-            if (
-                rectW < 72
-            ):  # Minimal weight in vehicle-attributes-recognition-barrier-0039  is 72
-                continue
-
-            attrImg = frame[ymin : ymax + 1, xmin : xmax + 1]
-
-            attr_blob = cv2.dnn.blobFromImage(attrImg, size=(72, 72), ddepth=cv2.CV_8U)
-            attr_net.setInput(attr_blob, "input")
-
-            out_color = attr_net.forward("color")
-            out_type = attr_net.forward("type")
-
-            carColor = "Color: " + CAR_COLORS[np.argmax(out_color.flatten())]
-            carType = "Type: " + CAR_TYPES[np.argmax(out_type.flatten())]
-
-            cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), vColor, rectThinkness)
-
-            if bShowColor:
-                drawText(
-                    frame, rectW * 0.002, xmin, ymin, vColor, carColor + " " + carType
-                )
-
-        elif classId == 2:  # plate
+        
+        if classId == 2:  # plate
             xmin = int(detection[3] * FRAME_WIDTH)
             ymin = int(detection[4] * FRAME_HEIGHT)
             xmax = int(detection[5] * FRAME_WIDTH)
@@ -205,6 +165,8 @@ def plateRecognition(frame):
                 content += items[_]
             cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), pColor, rectThinkness)
             drawText(frame, rectW * 0.008, xmin, ymin, pColor, content)
+        else:
+            continue
 
     showImg = imutils.resize(frame, height=600)
     cv2.imshow("showImg", showImg)
