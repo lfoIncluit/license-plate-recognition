@@ -1,6 +1,7 @@
 import cv2
-from openvino.inference_engine import IECore
+from openvino.inference_engine import IECore, StatusCode
 from imutils import paths, resize
+from time import sleep
 
 TEST_PATH = "faceTest"
 CONF = 0.4
@@ -17,17 +18,29 @@ face_model_bin = "./face-detection-model/face-detection-0206.bin"
 device = "CPU"
 
 
-def faceDetection(frame, face_execution_net, face_input_blob):
+def faceDetection(frame, face_execution_net, face_input_blob, face_output_blob):
 
     frame_width = frame.shape[1]
     frame_height = frame.shape[0]
 
+    num_of_classes = max(face_execution_net.outputs[face_output_blob].shape)
+
     face_blob = cv2.dnn.blobFromImage(
         frame, size=(MODEL_FRAME_SIZE, MODEL_FRAME_SIZE), ddepth=cv2.CV_8U
     )
-    face_results = face_execution_net.infer(inputs={face_input_blob: face_blob}).get(
-        "boxes"
-    )
+
+    face_execution_net.requests[0].async_infer({face_input_blob: face_blob})
+
+    while face_execution_net.requests[0].wait(0) != StatusCode.OK:
+        sleep(1)
+
+    face_results = face_execution_net.requests[0].output_blobs[face_output_blob].buffer
+
+    probs = face_results.reshape(num_of_classes)
+
+    print("FACE: ", face_results)
+    print("NUM CLASES: ", num_of_classes)
+    print("PROBS: ", probs)
 
     if face_results.any():
         for detection in face_results:
@@ -59,9 +72,10 @@ def main():
     face_neural_net = ie.read_network(model=face_model_xml, weights=face_model_bin)
     if face_neural_net is not None:
         face_input_blob = next(iter(face_neural_net.input_info))
+        face_output_blob = next(iter(face_neural_net.outputs))
         face_neural_net.batch_size = 1
         face_execution_net = ie.load_network(
-            network=face_neural_net, device_name=device.upper()
+            network=face_neural_net, device_name=device.upper(), num_requests=0
         )
 
     for imagePath in paths.list_images(TEST_PATH):
@@ -70,7 +84,7 @@ def main():
         if img is None:
             continue
 
-        faceDetection(img, face_execution_net, face_input_blob)
+        faceDetection(img, face_execution_net, face_input_blob, face_output_blob)
         cv2.waitKey(0)
 
 
