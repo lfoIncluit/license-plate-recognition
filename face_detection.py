@@ -15,7 +15,7 @@ face_model_xml = "./face-detection-model/face-detection-0206.xml"
 face_model_bin = "./face-detection-model/face-detection-0206.bin"
 
 
-device = "CPU"
+device = "GPU"
 
 
 def faceDetection(frame, face_execution_net, face_input_blob, face_output_blob):
@@ -34,13 +34,13 @@ def faceDetection(frame, face_execution_net, face_input_blob, face_output_blob):
     while face_execution_net.requests[0].wait(0) != StatusCode.OK:
         sleep(1)
 
-    face_results = face_execution_net.requests[0].output_blobs[face_output_blob].buffer
+    face_results = face_execution_net.requests[0].output_blobs["boxes"].buffer
 
-    probs = face_results.reshape(num_of_classes)
+    # probs = face_results.reshape(num_of_classes)
 
     print("FACE: ", face_results)
     print("NUM CLASES: ", num_of_classes)
-    print("PROBS: ", probs)
+    # print("PROBS: ", probs)
 
     if face_results.any():
         for detection in face_results:
@@ -77,6 +77,12 @@ def main():
         face_execution_net = ie.load_network(
             network=face_neural_net, device_name=device.upper(), num_requests=0
         )
+
+    for name, info in face_neural_net.outputs.items():
+        print("\tname: {}".format(name))
+        print("\tshape: {}".format(info.shape))
+        print("\tlayout: {}".format(info.layout))
+        print("\tprecision: {}\n".format(info.precision))
 
     for imagePath in paths.list_images(TEST_PATH):
         print(imagePath)
