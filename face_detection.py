@@ -15,15 +15,13 @@ face_model_xml = "./face-detection-model/face-detection-0206.xml"
 face_model_bin = "./face-detection-model/face-detection-0206.bin"
 
 
-device = "GPU"
+device = "CPU"
 
 
-def faceDetection(frame, face_execution_net, face_input_blob, face_output_blob):
+def faceDetection(frame, face_execution_net, face_input_blob):
 
     frame_width = frame.shape[1]
     frame_height = frame.shape[0]
-
-    num_of_classes = max(face_execution_net.outputs[face_output_blob].shape)
 
     face_blob = cv2.dnn.blobFromImage(
         frame, size=(MODEL_FRAME_SIZE, MODEL_FRAME_SIZE), ddepth=cv2.CV_8U
@@ -36,11 +34,7 @@ def faceDetection(frame, face_execution_net, face_input_blob, face_output_blob):
 
     face_results = face_execution_net.requests[0].output_blobs["boxes"].buffer
 
-    # probs = face_results.reshape(num_of_classes)
-
     print("FACE: ", face_results)
-    print("NUM CLASES: ", num_of_classes)
-    # print("PROBS: ", probs)
 
     if face_results.any():
         for detection in face_results:
@@ -72,7 +66,6 @@ def main():
     face_neural_net = ie.read_network(model=face_model_xml, weights=face_model_bin)
     if face_neural_net is not None:
         face_input_blob = next(iter(face_neural_net.input_info))
-        face_output_blob = next(iter(face_neural_net.outputs))
         face_neural_net.batch_size = 1
         face_execution_net = ie.load_network(
             network=face_neural_net, device_name=device.upper(), num_requests=0
@@ -90,7 +83,7 @@ def main():
         if img is None:
             continue
 
-        faceDetection(img, face_execution_net, face_input_blob, face_output_blob)
+        faceDetection(img, face_execution_net, face_input_blob)
         cv2.waitKey(0)
 
 
